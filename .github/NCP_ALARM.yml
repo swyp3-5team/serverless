@@ -1,0 +1,35 @@
+name: NCP Alarm to Discord
+
+on:
+  repository_dispatch:
+    types: [ncp_alarm]  # NCP 페이로드의 "event_type"과 일치해야 함
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Notification to Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          # NCP에서 보낸 데이터는 github.event.client_payload 로 접근
+          SERVER: ${{ github.event.client_payload.server_name }}
+          METRIC: ${{ github.event.client_payload.metric }}
+          VALUE: ${{ github.event.client_payload.current_value }}
+          STATUS: ${{ github.event.client_payload.status }}
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d '{
+            "content": "🚨 **NCP 서버 알림 발생**",
+            "embeds": [{
+              "title": "'"$SERVER"' 상태 보고",
+              "color": 15158332,
+              "fields": [
+                { "name": "대상 서버", "value": "'"$SERVER"'", "inline": true },
+                { "name": "상태", "value": "'"$STATUS"'", "inline": true },
+                { "name": "감지된 지표", "value": "'"$METRIC"'", "inline": true },
+                { "name": "현재 값", "value": "'"$VALUE"'", "inline": true }
+              ],
+              "footer": { "text": "GitHub Actions via NCP Cloud Insight" }
+            }]
+          }' \
+          $DISCORD_WEBHOOK
