@@ -22,7 +22,7 @@ jobs:
 
           cat <<EOF > payload.json
           {
-            "content": "**🚨 NCP 서버 알림 발생**",
+            "content": "**🚨 NCP SERVER ALERT**",
             "embeds": [
               {
                 "title": "${SERVER} 상태 보고",
